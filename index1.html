@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physicnator - PJPIICE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4">
+
+<div class="w-full max-w-xl bg-slate-800 p-8 rounded-2xl shadow-2xl text-center border border-slate-700">
+
+    <div class="mb-6">
+        <h1 class="text-3xl font-extrabold text-blue-400">Physicnator</h1>
+        <p class="text-sm text-slate-400 mt-1 whitespace-nowrap">
+            Pope John Paul II College of Education
+        </p>
+        <p class="text-xs text-slate-500 font-semibold">
+            Physics Department
+        </p>
+    </div>
+
+    <hr class="border-slate-700 mb-6">
+
+    <div class="flex justify-center mb-6">
+        <div class="bg-slate-700 p-2 rounded-xl">
+            <img id="akinator-img" src="" alt="Akinator Character" class="h-48 w-auto rounded-lg shadow-lg transition-all duration-300">
+        </div>
+    </div>
+
+    <div class="min-h-[80px] flex items-center justify-center mb-6">
+        <p id="question" class="text-xl font-medium text-slate-200 leading-relaxed">
+            Think of one from the list...
+        </p>
+    </div>
+
+    <div id="buttons" class="grid grid-cols-2 gap-4">
+        <button onclick="answer('yes')" class="bg-emerald-600 hover:bg-emerald-500 transition-colors p-4 rounded-xl text-lg font-bold shadow-lg">YES</button>
+        <button onclick="answer('no')" class="bg-rose-600 hover:bg-rose-500 transition-colors p-4 rounded-xl text-lg font-bold shadow-lg">NO</button>
+        <button onclick="answer('maybe')" class="bg-amber-500 hover:bg-amber-400 transition-colors p-4 rounded-xl text-lg font-bold col-span-2 shadow-lg">
+            PROBABLY / DON'T KNOW
+        </button>
+    </div>
+
+    <button onclick="startGame()" class="mt-8 text-sm text-slate-500 hover:text-white transition-colors flex items-center justify-center w-full gap-2">
+        Restart Game
+    </button>
+
+    <!-- Bottom Credit Line -->
+    <p class="mt-6 text-xs text-slate-500 border-t border-slate-700 pt-3">
+        Developed by :- I Year - Physics Department
+    </p>
+
+</div>
+
+<script>
+
+const images = {
+    hi: "hi.png",
+    thinking1: "thinking1.png",
+    thinking2: "thinking2.png",
+    result: "result.png"
+};
+
+const items = [
+    { name:"Albert Einstein", type:"person", quantum:true, relativity:true, gravity:true, pre1900:false, nobel:true, professor:false },
+    { name:"Marie Curie", type:"person", nuclear:true, radiation:true, pre1900:false, nobel:true, professor:false },
+    { name:"Isaac Newton", type:"person", motion:true, gravity:true, pre1900:true, professor:false },
+    { name:"Stephen Hawking", type:"person", space:true, gravity:true, quantum:true, pre1900:false, professor:false },
+    { name:"C.V. Raman", type:"person", light:true, quantum:true, pre1900:false, nobel:true, professor:false },
+    { name:"Dr. J. Ebenezer Andrews", type:"person", modernProfessor:true, professor:true, nobel:false, pre1900:false },
+
+    { name:"Newton's 2nd Law", type:"law", motion:true, force:true },
+    { name:"Heisenberg Principle", type:"law", quantum:true },
+    { name:"General Relativity", type:"theory", relativity:true, gravity:true },
+    { name:"Archimedes' Principle", type:"law", fluids:true, buoyancy:true, pre1900:true },
+
+    { name:"Kepler's Laws", type:"law", kepler:true, planetaryMotion:true },
+    { name:"Bernoulli's Principle", type:"law", bernoulli:true, fluidDynamics:true, fluids:true },
+    { name:"Coulomb's Law", type:"law", coulomb:true, electrostatics:true },
+
+    { name:"Electron", type:"particle", quantum:true, electricity:true },
+    { name:"Black Hole", type:"object", space:true, gravity:true },
+    { name:"Entropy", type:"concept", thermodynamics:true }
+];
+
+let remaining = [];
+let asked = [];
+let currentProp = null;
+let questionCount = 0;
+
+function updateImage(imgKey) {
+    document.getElementById("akinator-img").src = images[imgKey];
+}
+
+function startGame(){
+    remaining = [...items];
+    asked = [];
+    questionCount = 0;
+    document.getElementById("buttons").style.display = "grid";
+    updateImage('hi');
+    nextQuestion();
+}
+
+function getProperties(){
+    let props = new Set();
+    remaining.forEach(item=>{
+        Object.keys(item).forEach(key=>{
+            if(key !== "name" && key !== "type"){
+                props.add(key);
+            }
+        });
+    });
+    return [...props].filter(p => !asked.includes(p));
+}
+
+function findBestQuestion(){
+    let props = getProperties();
+    let best = null;
+    let bestDiff = Infinity;
+
+    props.forEach(prop=>{
+        let yesCount = remaining.filter(i => i[prop]).length;
+        if(yesCount === 0 || yesCount === remaining.length) return;
+        let diff = Math.abs((remaining.length/2) - yesCount);
+        if(diff < bestDiff){
+            bestDiff = diff;
+            best = prop;
+        }
+    });
+    return best;
+}
+
+function formatQuestion(prop){
+    const readable = {
+        quantum:"quantum physics?",
+        relativity:"relativity?",
+        gravity:"gravity?",
+        motion:"motion or force?",
+        nuclear:"nuclear physics?",
+        radiation:"radioactivity?",
+        space:"space or cosmology?",
+        light:"light or optics?",
+        thermodynamics:"thermodynamics?",
+        fluids:"fluid-related concept?",
+        buoyancy:"buoyancy?",
+        electricity:"electricity?",
+        pre1900:"before 1900?",
+        nobel:"Nobel Prize related?",
+        force:"force?",
+        professor:"a physics professor?",
+        modernProfessor:"a modern college physics professor?",
+        kepler:"laws about planetary motion?",
+        planetaryMotion:"motion of planets around the sun?",
+        bernoulli:"relationship between fluid speed and pressure?",
+        fluidDynamics:"fluid flow dynamics?",
+        coulomb:"force between electric charges?",
+        electrostatics:"static electric charges?"
+    };
+    return "Is it related to " + (readable[prop] || prop) + "?";
+}
+
+function nextQuestion(){
+    if(remaining.length === 0){
+        document.getElementById("question").innerText = "No match found in the PJPIICE Database.";
+        updateImage('thinking2');
+        return;
+    }
+
+    if(remaining.length === 1){
+        document.getElementById("question").innerHTML =
+            "<span class='text-blue-400'>I've got it!</span><br>It is: <span class='text-white font-bold'>" +
+            remaining[0].name + "</span> 🎉";
+        document.getElementById("buttons").style.display = "none";
+        updateImage('result');
+        return;
+    }
+
+    let prop = findBestQuestion();
+
+    if(!prop){
+        document.getElementById("question").innerText = "Is it " + remaining[0].name + "?";
+        document.getElementById("buttons").style.display = "none";
+        updateImage('result');
+        return;
+    }
+
+    if (questionCount === 0) updateImage('hi');
+    else if (questionCount <= 2) updateImage('thinking1');
+    else updateImage('thinking2');
+
+    currentProp = prop;
+    asked.push(prop);
+    document.getElementById("question").innerText = formatQuestion(prop);
+}
+
+function answer(value){
+    questionCount++;
+    if(value === "yes"){
+        remaining = remaining.filter(i => i[currentProp]);
+    }
+    else if(value === "no"){
+        remaining = remaining.filter(i => !i[currentProp]);
+    }
+    nextQuestion();
+}
+
+startGame();
+
+</script>
+</body>
+</html>
